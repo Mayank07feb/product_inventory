@@ -20,3 +20,6 @@ Route::put('/products/{index}', [ProductController::class, 'update'])->name('pro
 
 // View JSON data for all products
 Route::get('/products/json', [ProductController::class, 'showJson'])->name('products.json');
+
+
+Route::get('/products/xml', [ProductController::class, 'showXml'])->name('products.xml');

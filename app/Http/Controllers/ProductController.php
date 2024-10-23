@@ -9,6 +9,7 @@ use Illuminate\Support\Carbon;
 class ProductController extends Controller
 {
     protected $jsonFilePath = 'products.json';
+    protected $xmlFilePath = 'products.xml'; // Add XML file path
 
     // Display all products
     public function index()
@@ -43,7 +44,9 @@ class ProductController extends Controller
 
         $products = $this->getAllProducts();
         $products[] = $product;
+
         $this->saveProductsToJson($products);
+        $this->saveProductsToXml($products); // Save to XML as well
 
         return response()->json($products);
     }
@@ -56,6 +59,7 @@ class ProductController extends Controller
         if (isset($products[$index])) {
             unset($products[$index]);
             $this->saveProductsToJson(array_values($products)); // Reindex array
+            $this->saveProductsToXml(array_values($products)); // Update XML as well
         }
 
         return response()->json($products);
@@ -89,6 +93,7 @@ class ProductController extends Controller
             $products[$index]['total_value'] = $products[$index]['quantity'] * $products[$index]['price'];
 
             $this->saveProductsToJson($products);
+            $this->saveProductsToXml($products); // Update XML as well
 
             return response()->json($products);
         }
@@ -113,11 +118,37 @@ class ProductController extends Controller
         Storage::put($this->jsonFilePath, json_encode($products, JSON_PRETTY_PRINT));
     }
 
+    // Save the products back to the XML file
+    private function saveProductsToXml($products)
+    {
+        $xml = new \SimpleXMLElement('<products/>');
+
+        foreach ($products as $product) {
+            $productXml = $xml->addChild('product');
+            foreach ($product as $key => $value) {
+                $productXml->addChild($key, htmlspecialchars($value));
+            }
+        }
+
+        Storage::put($this->xmlFilePath, $xml->asXML());
+    }
+
     // Show JSON data for all products
     public function showJson()
     {
         $products = $this->getAllProducts();
-
         return response()->json($products);
+    }
+
+    // Show XML data for all products
+    public function showXml()
+    {
+        if (Storage::exists($this->xmlFilePath)) {
+            return response()->file(Storage::path($this->xmlFilePath), [
+                'Content-Type' => 'application/xml',
+            ]);
+        }
+
+        return response()->json(['error' => 'XML file not found'], 404);
     }
 }

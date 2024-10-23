@@ -28,3 +28,7 @@ php artisan serve
 #### TO See Json Data Format
 
 http://127.0.0.1:8000/products/json"
+
+#### TO See Xml Data Format
+
+http://127.0.0.1:8000/products/xml
